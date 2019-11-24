@@ -6,6 +6,7 @@ Created on Sun Nov 24 10:59:38 2019
 """
 
 import pdb
+import numpy as np
 import pandas as pd
 import dash
 import dash_core_components as dcc
@@ -15,10 +16,14 @@ from dash.dependencies import Input, Output
 
 df = pd.read_excel(r'https://www.eia.gov/electricity/data/eia860m/xls/august_generator2019.xlsx',
                    sheet_name='Operating',header=1)
+
+def df_wavg(df, values, weights):
+    wAvg = (np.sum(df[values]*df[weights]))/np.sum(df[values])
+    return wAvg
+
 #
 app = dash.Dash(__name__)
 
-df = pd.read_csv('https://plotly.github.io/datasets/country_indicators.csv')
 df = df[df['Sector'] == 'Electric Utility']
 keepCols = ['Entity Name', 'Plant Name', 'Nameplate Capacity (MW)',
             'Technology', 'Energy Source Code', 'Prime Mover Code',
@@ -31,13 +36,40 @@ emDict = {'WAT':0, 'NG':0.059, 'BIT':0.1, 'DFO':0.08, 'NUC':0, 'LIG':0.1,
            'WO':0.08, 'PG':0.08, 'SGP':0.08, 'OBL':0.08, 'OTH':0.06,
            'WH':0, 'OBG':0.059, 'OG':0.059}
 
-dfKeep = df[df[keepCols]]
+fuels = emDict.keys()
+
+dfKeep = df[keepCols]
 dfKeep['Age'] = 2019 - dfKeep['Operating Year']
 
-dfKeep['emmF'] = [emDict[x] for x in dfKeep['Energy Source Code'].values]
+dfKeep['emmR'] = [emDict[x] for x in dfKeep['Energy Source Code'].values]
+dfKeep['emmF'] = dfKeep['emmR'] * dfKeep['Nameplate Capacity (MW)']
 utilities = dfKeep['Entity Name'].unique()
+results = []
 for utility in utilities:
+    
+    #uFuelDict = {}
     dfU = dfKeep[dfKeep['Entity Name'] == utility]
+    
+    utilityMW = np.sum(dfU['Nameplate Capacity (MW)'])
+    utilityAge = df_wavg(dfU, 'Age', 'Nameplate Capacity (MW)')
+    utilityEm = df_wavg(dfU, 'emmF', 'Nameplate Capacity (MW)')
+    
+    for fuel in fuels:
+        dfUF = dfU[dfU['Energy Source Code'] == fuel]
+        if len(dfUF) > 0:
+            fuelMW = np.sum(dfUF['Nameplate Capacity (MW)'])
+            fuelAge = df_wavg(dfUF, 'Age', 'Nameplate Capacity (MW)')
+        else:
+            fuelMW = 0
+            fuelAge = 0
+            
+            
+        results.append([utility, utilityAge, utilityEm, fuel, fuelMW, fuelAge])
+        
+dfResults = pd.DataFrame(results, columns = ['Utility', 'MW-Age', 'Utility-Em',
+                                         'Fuel', 'Fuel-MW', 'Fuel-Age'])
+    
+dfResults.to_csv('utilities_aggregates.csv')
     
 
 #available_indicators = 
