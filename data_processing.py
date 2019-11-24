@@ -17,9 +17,9 @@ from dash.dependencies import Input, Output
 df = pd.read_excel(r'https://www.eia.gov/electricity/data/eia860m/xls/august_generator2019.xlsx',
                    sheet_name='Operating',header=1)
 
-def df_wavg(df, values, weights):
-    wAvg = (np.sum(df[values]*df[weights]))/np.sum(df[values])
-    return wAvg
+def df_wavg(df, weights, values):
+    return (df[values]*df[weights]).sum()/df[weights].sum()
+
 
 #
 app = dash.Dash(__name__)
@@ -51,14 +51,14 @@ for utility in utilities:
     dfU = dfKeep[dfKeep['Entity Name'] == utility]
     
     utilityMW = np.sum(dfU['Nameplate Capacity (MW)'])
-    utilityAge = df_wavg(dfU, 'Age', 'Nameplate Capacity (MW)')
-    utilityEm = df_wavg(dfU, 'emmF', 'Nameplate Capacity (MW)')
+    utilityAge = df_wavg(dfU, 'Nameplate Capacity (MW)', 'Age')
+    utilityEm = df_wavg(dfU, 'Nameplate Capacity (MW)', 'emmR')
     
     for fuel in fuels:
         dfUF = dfU[dfU['Energy Source Code'] == fuel]
         if len(dfUF) > 0:
             fuelMW = np.sum(dfUF['Nameplate Capacity (MW)'])
-            fuelAge = df_wavg(dfUF, 'Age', 'Nameplate Capacity (MW)')
+            fuelAge = df_wavg(dfUF, 'Nameplate Capacity (MW)', 'Age')
         else:
             fuelMW = 0
             fuelAge = 0
