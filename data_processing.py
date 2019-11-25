@@ -24,7 +24,7 @@ def df_wavg(df, weights, values):
 #
 app = dash.Dash(__name__)
 
-df = df[df['Sector'] == 'Electric Utility']
+#df = df[df['Sector'] == 'Electric Utility']
 keepCols = ['Entity Name', 'Plant Name', 'Nameplate Capacity (MW)',
             'Technology', 'Energy Source Code', 'Prime Mover Code',
             'Operating Month', 'Operating Year', 'Plant State']
@@ -34,11 +34,14 @@ emDict = {'WAT':0, 'NG':0.059, 'BIT':0.1, 'DFO':0.08, 'NUC':0, 'LIG':0.1,
            'GEO':0, 'LFG':0.059, 'MWH':0, 'WDS':0.07, 'RFO':0.08, 'JF':0.08,
            'SGC':0.1, 'KER':0.08, 'PC':0.08, 'MSW':0.07,
            'WO':0.08, 'PG':0.08, 'SGP':0.08, 'OBL':0.08, 'OTH':0.06,
-           'WH':0, 'OBG':0.059, 'OG':0.059}
+           'WH':0, 'OBG':0.059, 'OG':0.059, 'WC':0.1, 'BLQ':0.08, 'BFG':0.059,
+           'PUR':0, 'WDL':0.08, 'AB':0.08, 'TDF':0.1, 'OBS':0.08}
 
 fuels = emDict.keys()
 
 dfKeep = df[keepCols]
+dfKeep = dfKeep[dfKeep['Energy Source Code'].notnull()]
+
 dfKeep['Age'] = 2019 - dfKeep['Operating Year']
 
 dfKeep['emmR'] = [emDict[x] for x in dfKeep['Energy Source Code'].values]

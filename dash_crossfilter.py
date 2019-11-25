@@ -53,6 +53,7 @@ app.layout = html.Div([
             dcc.RadioItems(
                 id='crossfilter-yaxis-type',
                 options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
+                
                 value='Linear',
                 labelStyle={'display': 'inline-block'}
             )
