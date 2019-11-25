@@ -158,15 +158,8 @@ def create_time_series(dff, axis_type, title, colName):
      dash.dependencies.Input('crossfilter-xaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-xaxis-type', 'value')])
 def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
-    utility_v = hoverData['points'][0]['text']
-#    print(utility_v)
-#    df3 = dfFuels[dfFuels['MW-Age'] == utility_v]
-#    print(df3)
-#    u_name = df3['Utility'].values[0]
-#    print(u_name)
-    
+    utility_v = hoverData['points'][0]['text']    
     dff = dfFuels[dfFuels['Utility'] == utility_v]
-    #dff = dfFuels[dfFuels['Indicator Name'] == xaxis_column_name]
     title = str(utility_v)+': Fuel-MW'
     return create_time_series(dff, axis_type, title, 'Fuel-MW')
 
@@ -178,16 +171,7 @@ def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
      dash.dependencies.Input('crossfilter-yaxis-type', 'value')])
 def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
     utility_name = hoverData['points'][0]['text']
-#    print('YES YES YES')
-#    print(hoverData)
-#    print('YES YES YES')
-#    print(hoverData['points'][0])
-#    print(hoverData)
-#    print(hoverData['points'])
-#    print(hoverData['points'][0])
-#    print(utility_name)
     dff = dfFuels[dfFuels['Utility'] == utility_name]
-    #dff = dff[dff['Indicator Name'] == yaxis_column_name]
     title = utility_name+': Fuel-Age'
     return create_time_series(dff, axis_type, title, 'Fuel-Age')
 
