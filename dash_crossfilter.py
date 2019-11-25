@@ -12,7 +12,8 @@ import pandas as pd
 
 app = dash.Dash(__name__)
 
-df = pd.read_csv('utilities_aggregates.csv')
+dfFuels = pd.read_csv('utility_fuels.csv')
+dfStats = pd.read_csv('utility_stats.csv')
 
 available_indicators = df['Indicator Name'].unique()
 

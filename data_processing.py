@@ -85,5 +85,5 @@ for utility in utilities:
 dfUResults = pd.DataFrame(uResults, columns = ['Utility', 'Total MW', 'Weighted Age',
                                                'Utility-Em'])
     
-dfUResults.to_csv('utility_stats.csv')
+dfUResults.to_csv('utility_stats.csv', index=False)
 #available_indicators = 
