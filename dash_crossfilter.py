@@ -12,7 +12,7 @@ import pandas as pd
 
 app = dash.Dash(__name__)
 
-df = pd.read_csv('https://plotly.github.io/datasets/country_indicators.csv')
+df = pd.read_csv('utilities_aggregates.csv')
 
 available_indicators = df['Indicator Name'].unique()
 

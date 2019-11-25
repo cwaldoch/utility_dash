@@ -69,7 +69,21 @@ for utility in utilities:
 dfResults = pd.DataFrame(results, columns = ['Utility', 'MW-Age', 'Utility-Em',
                                          'Fuel', 'Fuel-MW', 'Fuel-Age'])
     
-dfResults.to_csv('utilities_aggregates.csv', index=False)
+dfResults.to_csv('utility_fuels.csv', index=False)
+
+uResults = []
+for utility in utilities:
+    dfRU = dfResults[dfResults['Utility'] == utility]
+    
+    totalMW = dfRU['Fuel-MW'].sum()
+    ageCap = dfRU['MW-Age'].mean()
+    emFU = dfRU['Utility-Em'].mean()
+    
+    uResults.append([utility, totalMW, ageCap, emFU])
     
 
+dfUResults = pd.DataFrame(uResults, columns = ['Utility', 'Total MW', 'Weighted Age',
+                                               'Utility-Em'])
+    
+dfUResults.to_csv('utility_stats.csv')
 #available_indicators = 
