@@ -14,6 +14,9 @@ app = dash.Dash(__name__)
 
 dfFuels = pd.read_csv('utility_fuels.csv')
 dfStats = pd.read_csv('utility_stats.csv')
+dfColors = pd.read_csv('fuel_colors.csv')
+
+colorDict = dict(zip(dfColors['fuel'].values, dfColors['color'].values))
 
 mwMax = dfStats['Total MW'].max()
 mwMin = dfStats['Total MW'].min()
@@ -93,7 +96,7 @@ def update_graph(xaxis_column_name, yaxis_column_name,
                  xaxis_type, yaxis_type,
                  mw_value):
     dff = dfStats[dfStats['Total MW'] >= mw_value]
-
+    
     return {
         'data': [dict(
             x=dff[xaxis_column_name],
@@ -126,11 +129,13 @@ def update_graph(xaxis_column_name, yaxis_column_name,
 def create_time_series(dff, axis_type, title, colName):
     
     dff2 = dff[dff['Fuel-MW'] >0]
+    outlineDict = {'color':'black', 'width':1.5}
+    barColor = {'color':[colorDict[x] for x in dff2['Fuel'].values], 'line':outlineDict}
     return {
         'data': [{
             'x':dff2['Fuel'],
             'y':dff2[colName],
-            'type':'bar',
+            'type':'bar','marker':barColor,
         }],
         'layout': {
             'height': 225,
