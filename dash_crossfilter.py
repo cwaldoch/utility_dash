@@ -5,7 +5,7 @@ Created on Sun Nov 24 19:44:34 2019
 @author: .3
 """
 
-import dash
+import dash, pdb, webbrowser
 import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
@@ -15,7 +15,13 @@ app = dash.Dash(__name__)
 dfFuels = pd.read_csv('utility_fuels.csv')
 dfStats = pd.read_csv('utility_stats.csv')
 
-available_indicators = df['Indicator Name'].unique()
+mwMax = dfStats['Total MW'].max()
+mwMin = dfStats['Total MW'].min()
+
+mwCeiling = mwMax
+mwCeiling -= mwCeiling % -500
+
+available_indicators = ['Total MW', 'Weighted Age', 'Utility-Em']
 
 app.layout = html.Div([
     html.Div([
@@ -24,7 +30,7 @@ app.layout = html.Div([
             dcc.Dropdown(
                 id='crossfilter-xaxis-column',
                 options=[{'label': i, 'value': i} for i in available_indicators],
-                value='Fertility rate, total (births per woman)'
+                value='Total MW'
             ),
             dcc.RadioItems(
                 id='crossfilter-xaxis-type',
@@ -39,7 +45,7 @@ app.layout = html.Div([
             dcc.Dropdown(
                 id='crossfilter-yaxis-column',
                 options=[{'label': i, 'value': i} for i in available_indicators],
-                value='Life expectancy at birth, total (years)'
+                value='Weighted Age'
             ),
             dcc.RadioItems(
                 id='crossfilter-yaxis-type',
@@ -57,7 +63,7 @@ app.layout = html.Div([
     html.Div([
         dcc.Graph(
             id='crossfilter-indicator-scatter',
-            hoverData={'points': [{'customdata': 'Japan'}]}
+            hoverData={'points': [{'customdata': 'Alabama Power Co'}]}
         )
     ], style={'width': '49%', 'display': 'inline-block', 'padding': '0 20'}),
     html.Div([
@@ -66,13 +72,13 @@ app.layout = html.Div([
     ], style={'display': 'inline-block', 'width': '49%'}),
 
     html.Div(dcc.Slider(
-        id='crossfilter-year--slider',
-        min=df['Year'].min(),
-        max=df['Year'].max(),
-        value=df['Year'].max(),
-        marks={str(year): str(year) for year in df['Year'].unique()},
+        id='crossfilter-mw-slider',
+        min=mwMin,
+        max=mwMax,
+        value=dfStats['Total MW'].max(),
+        marks={str(mwVal): str(mwVal) for mwVal in range(0, int(mwCeiling), 2000)},
         step=None
-    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+    ), style={'width': '49%', 'padding': '0px 20px 20px 25px'})
 ])
 
 
@@ -82,18 +88,18 @@ app.layout = html.Div([
      dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-xaxis-type', 'value'),
      dash.dependencies.Input('crossfilter-yaxis-type', 'value'),
-     dash.dependencies.Input('crossfilter-year--slider', 'value')])
+     dash.dependencies.Input('crossfilter-mw-slider', 'value')])
 def update_graph(xaxis_column_name, yaxis_column_name,
                  xaxis_type, yaxis_type,
-                 year_value):
-    dff = df[df['Year'] == year_value]
+                 mw_value):
+    dff = dfStats[dfStats['Total MW'] >= mw_value]
 
     return {
         'data': [dict(
-            x=dff[dff['Indicator Name'] == xaxis_column_name]['Value'],
-            y=dff[dff['Indicator Name'] == yaxis_column_name]['Value'],
-            text=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'],
-            customdata=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'],
+            x=dff[xaxis_column_name],
+            y=dff[yaxis_column_name],
+            text=dff['Utility'],
+            customdata=dff[yaxis_column_name],
             mode='markers',
             marker={
                 'size': 15,
@@ -117,16 +123,18 @@ def update_graph(xaxis_column_name, yaxis_column_name,
     }
 
 
-def create_time_series(dff, axis_type, title):
+def create_time_series(dff, axis_type, title, colName):
+    
+    dff2 = dff[dff['Fuel-MW'] >0]
     return {
-        'data': [dict(
-            x=dff['Year'],
-            y=dff['Value'],
-            mode='lines+markers'
-        )],
+        'data': [{
+            'x':dff2['Fuel'],
+            'y':dff2[colName],
+            'type':'bar',
+        }],
         'layout': {
             'height': 225,
-            'margin': {'l': 20, 'b': 30, 'r': 10, 't': 10},
+            'margin': {'l': 40, 'b': 30, 'r': 10, 't': 20},
             'annotations': [{
                 'x': 0, 'y': 0.85, 'xanchor': 'left', 'yanchor': 'bottom',
                 'xref': 'paper', 'yref': 'paper', 'showarrow': False,
@@ -145,11 +153,17 @@ def create_time_series(dff, axis_type, title):
      dash.dependencies.Input('crossfilter-xaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-xaxis-type', 'value')])
 def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
-    country_name = hoverData['points'][0]['customdata']
-    dff = df[df['Country Name'] == country_name]
-    dff = dff[dff['Indicator Name'] == xaxis_column_name]
-    title = '<b>{}</b><br>{}'.format(country_name, xaxis_column_name)
-    return create_time_series(dff, axis_type, title)
+    utility_v = hoverData['points'][0]['text']
+#    print(utility_v)
+#    df3 = dfFuels[dfFuels['MW-Age'] == utility_v]
+#    print(df3)
+#    u_name = df3['Utility'].values[0]
+#    print(u_name)
+    
+    dff = dfFuels[dfFuels['Utility'] == utility_v]
+    #dff = dfFuels[dfFuels['Indicator Name'] == xaxis_column_name]
+    title = str(utility_v)+': Fuel-MW'
+    return create_time_series(dff, axis_type, title, 'Fuel-MW')
 
 
 @app.callback(
@@ -158,10 +172,21 @@ def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
      dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-yaxis-type', 'value')])
 def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
-    dff = df[df['Country Name'] == hoverData['points'][0]['customdata']]
-    dff = dff[dff['Indicator Name'] == yaxis_column_name]
-    return create_time_series(dff, axis_type, yaxis_column_name)
+    utility_name = hoverData['points'][0]['text']
+#    print('YES YES YES')
+#    print(hoverData)
+#    print('YES YES YES')
+#    print(hoverData['points'][0])
+#    print(hoverData)
+#    print(hoverData['points'])
+#    print(hoverData['points'][0])
+#    print(utility_name)
+    dff = dfFuels[dfFuels['Utility'] == utility_name]
+    #dff = dff[dff['Indicator Name'] == yaxis_column_name]
+    title = utility_name+': Fuel-Age'
+    return create_time_series(dff, axis_type, title, 'Fuel-Age')
 
 
+webbrowser.open_new('http://127.0.0.1:9899/')
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(port=9899)
