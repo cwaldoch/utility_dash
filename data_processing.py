@@ -69,7 +69,7 @@ for utility in utilities:
 dfResults = pd.DataFrame(results, columns = ['Utility', 'MW-Age', 'Utility-Em',
                                          'Fuel', 'Fuel-MW', 'Fuel-Age'])
     
-dfResults.to_csv('utilities_aggregates.csv')
+dfResults.to_csv('utilities_aggregates.csv', index=False)
     
 
 #available_indicators = 
