@@ -15,3 +15,4 @@ Next steps:
 3. Data Table
 4. More in-dashboard documentation
 5. Additional tabs of analysis.
+6. Splitting tabs to mobile and desktop, need to change behavior of mobile version since hoverdata doesn't seem to work.
