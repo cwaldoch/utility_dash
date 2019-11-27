@@ -14,7 +14,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 
-df = pd.read_excel(r'https://www.eia.gov/electricity/data/eia860m/xls/august_generator2019.xlsx',
+df = pd.read_excel(r'https://www.eia.gov/electricity/data/eia860m/xls/september_generator2019.xlsx',
                    sheet_name='Operating',header=1)
 
 def df_wavg(df, weights, values):
